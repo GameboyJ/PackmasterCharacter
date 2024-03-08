@@ -57,14 +57,16 @@ public class Ghost extends AbstractColorlessPackCard implements StartupCard {
             @Override
             public void update() {
                 isDone = true;
-                List<AbstractCard> possibilities = AbstractDungeon.player.drawPile.group.stream().filter(Ghost::canDisguiseAs).collect(Collectors.toList());
-                if (!possibilities.isEmpty() && AbstractDungeon.player.drawPile.contains(Ghost.this)) {
-                    int index = AbstractDungeon.player.drawPile.group.indexOf(Ghost.this);
-                    AbstractDungeon.player.drawPile.removeCard(Ghost.this);
+                List<AbstractCard> possibilities = Wiz.getAllCardsInCardGroups(true, false).stream().filter(Ghost::canDisguiseAs).collect(Collectors.toList());
+                if (!possibilities.isEmpty() && Wiz.getAllCardsInCardGroups(true, false).contains(Ghost.this)) {
+                    int index = Wiz.getAllCardsInCardGroups(true, false).indexOf(Ghost.this);
+                    if (!AbstractDungeon.player.hand.group.remove(Ghost.this)) //remove a Ghost from your hand, if no Ghost is removed...
+                        if (!AbstractDungeon.player.drawPile.group.remove(Ghost.this)) //remove a Ghost from your draw pile, if no Ghost is removed...
+                            AbstractDungeon.player.discardPile.removeCard(Ghost.this); //remove a Ghost from your discard pile.
                     AbstractCard disguise = Wiz.getRandomItem(possibilities, AbstractDungeon.cardRandomRng).makeStatEquivalentCopy();
                     CardModifierManager.addModifier(disguise, new IsGhostModifier(Ghost.this));
                     if (index > 0) {
-                        AbstractDungeon.player.drawPile.group.add(index, disguise);
+                        Wiz.getAllCardsInCardGroups(true, false).add(index, disguise);
                     } else {
                         AbstractDungeon.player.drawPile.addToRandomSpot(disguise);
                     }

@@ -43,7 +43,9 @@ public class ThePrism extends AbstractColorlessPackCard implements StartupCard {
             @Override
             public void update() {
                 isDone = true;
-                AbstractDungeon.player.drawPile.removeCard(ThePrism.this);
+                if (!AbstractDungeon.player.hand.group.remove(ThePrism.this)) //remove a The Prism from your hand, if no The Prism is removed...
+                    if (!AbstractDungeon.player.drawPile.group.remove(ThePrism.this)) //remove a The Prism from your draw pile, if no The Prism is removed...
+                        AbstractDungeon.player.discardPile.removeCard(ThePrism.this); //remove a The Prism from your discard pile.
                 AbstractCard q = new PrismShard();
                 if (upgraded) q.upgrade();
                 att(new AbstractGameAction() {
