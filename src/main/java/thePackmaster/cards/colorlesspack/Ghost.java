@@ -7,6 +7,7 @@ import com.megacrit.cardcrawl.actions.AbstractGameAction;
 import com.megacrit.cardcrawl.actions.animations.VFXAction;
 import com.megacrit.cardcrawl.actions.utility.SFXAction;
 import com.megacrit.cardcrawl.cards.AbstractCard;
+import com.megacrit.cardcrawl.cards.CardGroup;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.dungeons.AbstractDungeon;
 import com.megacrit.cardcrawl.monsters.AbstractMonster;
@@ -57,16 +58,23 @@ public class Ghost extends AbstractColorlessPackCard implements StartupCard {
             @Override
             public void update() {
                 isDone = true;
+                CardGroup target = AbstractDungeon.player.drawPile;
                 List<AbstractCard> possibilities = Wiz.getAllCardsInCardGroups(true, false).stream().filter(Ghost::canDisguiseAs).collect(Collectors.toList());
                 if (!possibilities.isEmpty() && Wiz.getAllCardsInCardGroups(true, false).contains(Ghost.this)) {
-                    int index = Wiz.getAllCardsInCardGroups(true, false).indexOf(Ghost.this);
-                    if (!AbstractDungeon.player.hand.group.remove(Ghost.this)) //remove a Ghost from your hand, if no Ghost is removed...
-                        if (!AbstractDungeon.player.drawPile.group.remove(Ghost.this)) //remove a Ghost from your draw pile, if no Ghost is removed...
-                            AbstractDungeon.player.discardPile.removeCard(Ghost.this); //remove a Ghost from your discard pile.
+                    int index = -1;
+                    if (AbstractDungeon.player.hand.contains(Ghost.this)) {
+                        target = AbstractDungeon.player.hand;
+                    } else if (AbstractDungeon.player.drawPile.contains(Ghost.this)) {
+                        target = AbstractDungeon.player.drawPile;
+                    } else if (AbstractDungeon.player.discardPile.contains(Ghost.this)) {
+                        target = AbstractDungeon.player.discardPile;
+                    }
+                    index = target.group.indexOf(Ghost.this);
+                    target.removeCard(Ghost.this);
                     AbstractCard disguise = Wiz.getRandomItem(possibilities, AbstractDungeon.cardRandomRng).makeStatEquivalentCopy();
                     CardModifierManager.addModifier(disguise, new IsGhostModifier(Ghost.this));
                     if (index > 0) {
-                        Wiz.getAllCardsInCardGroups(true, false).add(index, disguise);
+                        target.group.add(index, disguise);
                     } else {
                         AbstractDungeon.player.drawPile.addToRandomSpot(disguise);
                     }
